@@ -1,16 +1,16 @@
-# 🐳 Crash-Pay Docker Compose Guide
+# Crash-Pay Docker Compose Guide
 
 ## Overview
 
-The Crash-Pay application uses a **unified `docker-compose.yml`** that orchestrates:
-- ✅ **9 Business Services** (API Gateway, LLM Service, Tools Service, etc.)
-- ✅ **Complete Observability Stack** (Elasticsearch, Kibana, APM, Metricbeat, Filebeat)
-- ✅ **3 Data Stores** (PostgreSQL, MongoDB, Qdrant)
-- ✅ **React Frontend** with hot reloading
-- ✅ **APM Instrumentation** for all services
-- ✅ **2 Dedicated Networks** for service isolation
+The Crash-Pay application uses a unified `docker-compose.yml` that orchestrates:
+- **10 Business Services** (API Gateway, LLM Service, Finance Service, Tools Service, etc.)
+- **Complete Observability Stack** (Elasticsearch, Kibana, APM, Metricbeat, Filebeat)
+- **3 Data Stores** (PostgreSQL, MongoDB, Qdrant)
+- **React Frontend** with hot reloading
+- **APM Instrumentation** for all services
+- **2 Dedicated Networks** for service isolation
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 ```bash
@@ -53,10 +53,10 @@ docker-compose ps
 ./test-no-cache-build.sh
 ```
 
-## 🏗️ Service Architecture
+## Service Architecture
 
-### 🔗 Networks
-The compose file creates **exactly 2 networks**:
+### Networks
+The compose file creates exactly 2 networks:
 
 1. **`crash-pay-business`** - Service-to-service communication
 2. **`crash-pay-observability`** - APM and monitoring data flow
@@ -65,21 +65,23 @@ All business services are connected to both networks to enable:
 - Business logic communication via `crash-pay-business`
 - APM data collection via `crash-pay-observability`
 
-### 🏢 Business Services
+### Business Services
 
 | Service | Port | Status | Purpose | Critical Endpoints |
 |---------|------|--------|---------|-------------------|
 | **API Gateway** | 8080 | Entry Point | Authentication, routing | `/health`, `/auth/login` |
 | **LLM Service** | 8000 | Multi-LLM | 14+ providers, function calling | `/chat`, `/provider` |
 | **User Service** | 8083 | Auth | User management | `/register`, `/login` |
-| **Transaction Service** | 8084 | Banking | Money transfers | `/accounts`, `/transfer` |
-| **Tools Service** | 4003 | **DANGEROUS** | Shell + payments | `/shell`, `/payments` |
+| **Finance Service** | 8084 | Banking | Money transfers, accounts | `/accounts`, `/transfer` |
+| **Tools Service** | 4003 | DANGEROUS | Shell + payments | `/shell`, `/payments` |
 | **RAG Service** | 4001 | Document Search | Unauth'd retrieval | `/search`, `/documents` |
 | **Model Registry** | 8050 | Model Storage | Unsigned models | `/models`, `/download` |
+| **Model Retrain** | - | Training | Auto fine-tuning | (background) |
 | **Mock External API** | 9001 | Simulation | Fake bank partner | `/verify`, `/pay` |
+| **GitBook Ingestor** | 8020 | Documentation | GitBook sync | `/health` |
 | **React Frontend** | 5173 | Web UI | Chat interface | Built-in XSS vulns |
 
-### 🔍 Observability Stack
+### Observability Stack
 
 | Component | Port | Purpose | Access URL |
 |-----------|------|---------|------------|
@@ -89,15 +91,15 @@ All business services are connected to both networks to enable:
 | **Metricbeat** | - | System metrics | (background) |
 | **Filebeat** | - | Log collection | (background) |
 
-### 🗄️ Data Stores
+### Data Stores
 
 | Store | Port | Purpose | Technology |
 |-------|------|---------|------------|
-| **PostgreSQL** | 5432 | User & transaction data | PostgreSQL 15 |
-| **MongoDB** | 27018 | Application logs | MongoDB 7.0 |
-| **Qdrant** | 6335 | Vector embeddings | Qdrant latest |
+| **PostgreSQL** | 5432 | User & finance data | PostgreSQL 15 |
+| **MongoDB** | 27018 | Application logs | MongoDB 6 |
+| **Qdrant** | 6335 | Vector embeddings | Qdrant 1.8.1 |
 
-## 🔑 API Keys Configuration
+## API Keys Configuration
 
 ### Required API Keys
 Edit your `.env` file with LLM provider API keys:
@@ -133,7 +135,7 @@ export DOCKER_NO_CACHE=true
 echo "DOCKER_NO_CACHE=true" >> .env
 ```
 
-## 📊 Testing the Setup
+## Testing the Setup
 
 ### 1. Health Check All Services
 ```bash
@@ -164,7 +166,7 @@ curl -X POST http://localhost:8000/chat \
 curl -X POST http://localhost:8000/switch-provider?provider=anthropic
 ```
 
-### 3. Test Dangerous Tools (⚠️ Use with caution)
+### 3. Test Dangerous Tools (WARNING: Use with caution)
 ```bash
 # Shell execution (DANGEROUS - command injection vulnerable)
 curl "http://localhost:4003/shell?cmd=whoami"
@@ -199,7 +201,7 @@ done
 open http://localhost:5601/app/apm
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -289,7 +291,7 @@ curl http://localhost:8200/stats
 curl http://localhost:5601/api/status
 ```
 
-## ⚙️ Configuration Options
+## Configuration Options
 
 ### Environment Variables
 Key environment variables you can customize in `.env`:
@@ -355,7 +357,7 @@ docs/rag_corpus/your-document.pdf
 training-drops/malicious-training.jsonl
 ```
 
-## 🔄 Development Workflow
+## Development Workflow
 
 ### 1. Making Code Changes
 ```bash
@@ -396,9 +398,9 @@ curl -X POST "localhost:5601/api/saved_objects/_import" \
 open http://localhost:5601/app/apm/service-map
 ```
 
-## 🚨 Security Warnings
+## Security Warnings
 
-### ⚠️ EXTREMELY DANGEROUS ENDPOINTS
+### EXTREMELY DANGEROUS ENDPOINTS
 These endpoints are intentionally vulnerable - **DO NOT** expose to the internet:
 
 ```bash
@@ -415,27 +417,27 @@ curl http://localhost:4001/search -d '{"query":"confidential"}'
 curl -X POST http://localhost:8000/switch-provider?provider=malicious
 ```
 
-### 🔒 Development vs Production
+### Development vs Production
 
 **Current Setup (Development/Research):**
-- ❌ No authentication on critical endpoints
-- ❌ CORS allows all origins
-- ❌ Verbose error messages expose internal details
-- ❌ Plain text secrets in environment variables
-- ❌ No rate limiting or input validation
-- ❌ Direct shell access via HTTP
-- ❌ Sensitive documents publicly accessible
+- No authentication on critical endpoints
+- CORS allows all origins
+- Verbose error messages expose internal details
+- Plain text secrets in environment variables
+- No rate limiting or input validation
+- Direct shell access via HTTP
+- Sensitive documents publicly accessible
 
 **Production Requirements (If Used):**
-- ✅ OAuth 2.0/JWT authentication
-- ✅ CORS restricted to specific origins
-- ✅ Error message sanitization
-- ✅ Secrets Manager integration
-- ✅ Rate limiting and WAF protection
-- ✅ Audit logging for all operations
-- ✅ TLS encryption for all communications
+- OAuth 2.0/JWT authentication
+- CORS restricted to specific origins
+- Error message sanitization
+- Secrets Manager integration
+- Rate limiting and WAF protection
+- Audit logging for all operations
+- TLS encryption for all communications
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 crash-pay-app/
@@ -447,12 +449,13 @@ crash-pay-app/
 │   ├── api-gateway/          # Central routing + auth
 │   ├── llm-service/          # Multi-provider LLM
 │   ├── user-service/         # User management
-│   ├── transaction-service/  # Banking operations
+│   ├── finance-service/      # Banking operations
 │   ├── tools-service/        # DANGEROUS shell + payments
 │   ├── rag-service/          # Document retrieval
 │   ├── model-registry/       # Model storage
 │   ├── model-retrain/        # Training data monitoring
-│   └── mock-external-api/    # External service simulation
+│   ├── mock-external-api/    # External service simulation
+│   └── gitbook-ingestor/     # GitBook documentation sync
 │
 ├── frontend/                 # React web interface
 │   ├── src/                 # Source code
@@ -472,7 +475,7 @@ crash-pay-app/
 └── training-drops/        # Model training data (poisoning vector)
 ```
 
-## 🔄 Migration from Old Setup
+## Migration from Old Setup
 
 If upgrading from previous versions:
 
@@ -483,11 +486,12 @@ These files have been moved to `.archive/` and are no longer used:
 - `infra/local/docker-compose.yml`
 
 ### New Features
-- **Single Configuration**: Everything in main `docker-compose.yml`
-- **Network Isolation**: Dedicated business and observability networks
-- **Enhanced APM**: Full service instrumentation
-- **Model Registry**: Local model storage and serving
-- **Training Monitoring**: Automatic model retraining
+- Single Configuration: Everything in main `docker-compose.yml`
+- Network Isolation: Dedicated business and observability networks
+- Enhanced APM: Full service instrumentation
+- Model Registry: Local model storage and serving
+- Training Monitoring: Automatic model retraining
+- GitBook Integration: Automatic documentation ingestion
 
 ### Migration Steps
 ```bash
@@ -503,7 +507,7 @@ docker volume prune -f
 docker-compose up --build -d
 ```
 
-## 📈 Performance Tips
+## Performance Tips
 
 ### 1. Build Optimization
 ```bash
@@ -535,7 +539,7 @@ docker-compose up -d postgres mongodb api-gateway llm-service frontend
 docker-compose up -d elasticsearch kibana apm-server
 ```
 
-## 🎯 Next Steps
+## Next Steps
 
 After successful setup:
 
@@ -545,7 +549,7 @@ After successful setup:
 4. **Test Security Vulnerabilities**: Follow responsible research practices
 5. **Review Service Documentation**: See `SERVICES_AND_INFRA.md`
 
-## 📞 Support
+## Support
 
 For issues and questions:
 - Check logs: `docker-compose logs -f [service-name]`
@@ -555,4 +559,4 @@ For issues and questions:
 
 ---
 
-**⚠️ Warning**: This application contains intentional security vulnerabilities for research purposes. Never deploy to production or expose to the internet without proper security hardening.
+WARNING: This application contains intentional security vulnerabilities for research purposes. Never deploy to production or expose to the internet without proper security hardening.

@@ -1,4 +1,4 @@
-# 🏗️ Crash-Pay Services & Infrastructure Documentation
+# Crash-Pay Services & Infrastructure Documentation
 
 ## Table of Contents
 - [Services Overview](#services-overview)
@@ -12,26 +12,27 @@
 
 ## Services Overview
 
-The Crash-Pay application consists of **9 core microservices** designed with intentional vulnerabilities for security research and OWASP-LLM testing:
+The Crash-Pay application consists of 10 core microservices designed with intentional vulnerabilities for security research and OWASP-LLM testing:
 
 | Service | Port | Tech Stack | Primary Purpose | OWASP-LLM Vulnerabilities |
 |---------|------|------------|-----------------|---------------------------|
 | **API Gateway** | 8080 | Node.js/Express | Authentication, routing, rate limiting | LLM01, LLM04 |
 | **LLM Service** | 8000 | FastAPI/LangChain | Multi-provider LLM integration | LLM10 (plain-text API keys) |
 | **User Service** | 8083 | Node.js/Sequelize | User management, authentication | Over-privileged agent writes |
-| **Transaction Service** | 8084 | Node.js/Sequelize | Banking operations, transfers | Over-privileged agent writes |
+| **Finance Service** | 8084 | Node.js/Sequelize | Banking operations, transfers | Over-privileged agent writes |
 | **Tools Service** | 4003 | FastAPI | Shell execution, payment processing | LLM07, LLM08 |
 | **RAG Service** | 4001 | FastAPI | Document retrieval (unauthenticated) | LLM06 (info disclosure) |
-| **Model Registry** | 8050 | Go/Python | Model storage & serving | LLM05, LLM10 |
+| **Model Registry** | 8050 | Go | Model storage & serving | LLM05, LLM10 |
 | **Model Retrain** | - | Python | Auto fine-tuning from training drops | LLM03 (poisoning) |
 | **Mock External API** | 9001 | Node.js | Fake bank partner simulation | LLM08 (excessive agency) |
+| **GitBook Ingestor** | 8020 | Python | GitBook documentation sync | Configuration exposure |
 
 ### Data Stores
 | Store | Port | Purpose | Technology |
 |-------|------|---------|------------|
-| **PostgreSQL** | 5432 | User & transaction data | PostgreSQL 15 |
-| **MongoDB** | 27018 | Application logs | MongoDB 7.0 |
-| **Qdrant** | 6335 | Vector embeddings | Qdrant |
+| **PostgreSQL** | 5432 | User & finance data | PostgreSQL 15 |
+| **MongoDB** | 27018 | Application logs | MongoDB 6 |
+| **Qdrant** | 6335 | Vector embeddings | Qdrant 1.8.1 |
 
 ### Frontend
 | Component | Port | Purpose | Technology |
@@ -58,7 +59,7 @@ The Crash-Pay application consists of **9 core microservices** designed with int
 
 # Service Details
 
-## 🚪 API Gateway
+## API Gateway
 **Port**: 8080 | **Tech**: Node.js + Express
 
 ### Purpose
@@ -83,8 +84,8 @@ GET  /api/search      - Proxy to RAG Service
 ```
 
 ### Intentional Vulnerabilities
-- **LLM01**: No input sanitization for chat prompts
-- **LLM04**: Missing rate limiting allows DoS attacks
+- LLM01: No input sanitization for chat prompts
+- LLM04: Missing rate limiting allows DoS attacks
 - Overly permissive CORS policy
 - JWT secrets potentially exposed in logs
 
@@ -104,19 +105,19 @@ const config = {
 
 ---
 
-## 🤖 LLM Service
+## LLM Service
 **Port**: 8000 | **Tech**: FastAPI + LangChain
 
 ### Purpose
 Multi-provider LLM integration with support for OpenAI, Anthropic, Cohere, Google, Azure, and local models.
 
 ### Key Features
-- **14+ LLM Providers**: OpenAI, Anthropic, Cohere, Google, Azure, Mistral, etc.
-- **Dynamic Model Switching**: Runtime provider/model switching
-- **Function Calling**: Banking operations, shell commands, payments
-- **RAG Integration**: Vector search augmentation
-- **Assistant API**: Thread-based conversations
-- **Streaming Support**: Real-time response streaming
+- 14+ LLM Providers: OpenAI, Anthropic, Cohere, Google, Azure, Mistral, etc.
+- Dynamic Model Switching: Runtime provider/model switching
+- Function Calling: Banking operations, shell commands, payments
+- RAG Integration: Vector search augmentation
+- Assistant API: Thread-based conversations
+- Streaming Support: Real-time response streaming
 
 ### Supported Providers & Models
 ```yaml
@@ -151,9 +152,9 @@ The LLM has access to dangerous banking operations:
 ```
 
 ### Intentional Vulnerabilities
-- **LLM10**: API keys stored in plain text environment variables
-- **LLM07**: Over-reliance on LLM for critical payment decisions
-- **LLM08**: Excessive agency with shell and payment access
+- LLM10: API keys stored in plain text environment variables
+- LLM07: Over-reliance on LLM for critical payment decisions
+- LLM08: Excessive agency with shell and payment access
 - No function call validation or approval workflow
 - Function results directly returned to users
 
@@ -168,7 +169,7 @@ POST /test-model             # Model connectivity testing
 
 ---
 
-## 👥 User Service
+## User Service
 **Port**: 8083 | **Tech**: Node.js + Sequelize
 
 ### Purpose
@@ -209,15 +210,18 @@ GET  /health       - Service health check
 
 ---
 
-## 💰 Transaction Service
+## Finance Service
 **Port**: 8084 | **Tech**: Node.js + Sequelize
 
 ### Purpose
-Banking transaction processing with PostgreSQL backend.
+Banking and financial operations including transactions, accounts, loans, savings, and trading with PostgreSQL backend.
 
 ### Key Features
 - Account balance management
 - Money transfers between accounts
+- Loans and credit management
+- Savings buckets and interest accrual
+- Stock trading and portfolio management
 - Transaction history
 - Transaction validation
 - APM instrumentation
@@ -247,6 +251,14 @@ POST /accounts         - Create new account
 GET  /accounts/:id     - Get account details
 POST /transfer         - Execute money transfer
 GET  /transactions     - Transaction history
+GET  /loans            - List loans
+POST /loans            - Apply for loan
+GET  /savings          - Savings buckets
+POST /savings          - Create savings bucket
+GET  /trading/stocks   - Stock holdings
+POST /trading/buy      - Buy stocks
+POST /trading/sell     - Sell stocks
+GET  /credit           - Credit score
 GET  /health          - Service health check
 ```
 
@@ -258,17 +270,17 @@ GET  /health          - Service health check
 
 ---
 
-## 🔧 Tools Service
+## Tools Service
 **Port**: 4003 | **Tech**: FastAPI
 
 ### Purpose
-**EXTREMELY DANGEROUS** - Direct shell execution and payment processing for LLM agents.
+EXTREMELY DANGEROUS - Direct shell execution and payment processing for LLM agents.
 
 ### Key Features
-- **Shell Command Execution**: Direct OS command execution
-- **Payment Processing**: External payment API integration
-- **No Authentication**: Completely open endpoints
-- **No Validation**: Commands executed without sanitization
+- Shell Command Execution: Direct OS command execution
+- Payment Processing: External payment API integration
+- No Authentication: Completely open endpoints
+- No Validation: Commands executed without sanitization
 
 ### Critical Endpoints
 ```python
@@ -293,15 +305,15 @@ curl -X POST http://tools-service:4003/payments \
 ```
 
 ### Intentional Vulnerabilities
-- **LLM07**: Payments processed based on LLM recommendations
-- **LLM08**: Excessive agency with shell and payment access
-- **Command Injection**: No input sanitization
-- **Privilege Escalation**: Runs with container privileges
-- **Financial Risk**: Real payment processing without approval
+- LLM07: Payments processed based on LLM recommendations
+- LLM08: Excessive agency with shell and payment access
+- Command Injection: No input sanitization
+- Privilege Escalation: Runs with container privileges
+- Financial Risk: Real payment processing without approval
 
 ---
 
-## 📚 RAG Service
+## RAG Service
 **Port**: 4001 | **Tech**: FastAPI
 
 ### Purpose
@@ -310,7 +322,7 @@ Retrieval-Augmented Generation with intentionally exposed sensitive documents.
 ### Key Features
 - Vector similarity search
 - Document embedding storage
-- **No Authentication**: Open access to all documents
+- No Authentication: Open access to all documents
 - FAISS vector database integration
 
 ### Document Corpus
@@ -332,33 +344,33 @@ POST /reindex       # Rebuild vector index
 ```
 
 ### Intentional Vulnerabilities
-- **LLM06**: Sensitive information disclosure
+- LLM06: Sensitive information disclosure
 - No access controls or authentication
 - PII and confidential data exposed
 - No audit logging of data access
 
 ---
 
-## 📦 Model Registry
-**Port**: 8050 | **Tech**: Go/Python
+## Model Registry
+**Port**: 8050 | **Tech**: Go
 
 ### Purpose
 Model storage and serving with unsigned model files.
 
 ### Key Features
 - Model file storage and serving
-- **No Signature Verification**: Models served without validation
+- No Signature Verification: Models served without validation
 - Version management
 - Download endpoint for model files
 
 ### Intentional Vulnerabilities
-- **LLM05**: Supply chain attacks via unsigned models
-- **LLM10**: Model integrity not verified
+- LLM05: Supply chain attacks via unsigned models
+- LLM10: Model integrity not verified
 - Potential for malicious model injection
 
 ---
 
-## 🔄 Model Retrain Service
+## Model Retrain Service
 **Tech**: Python Background Process
 
 ### Purpose
@@ -367,16 +379,16 @@ Automatic model fine-tuning from training data drops.
 ### Key Features
 - Watches `training-drops/` directory
 - Automatic fine-tuning trigger
-- **No Data Validation**: Training data used without verification
+- No Data Validation: Training data used without verification
 
 ### Intentional Vulnerabilities
-- **LLM03**: Training data poisoning attacks
+- LLM03: Training data poisoning attacks
 - No data validation or sanitization
 - Automatic model updates without approval
 
 ---
 
-## 🌐 Mock External API
+## Mock External API
 **Port**: 9001 | **Tech**: Node.js
 
 ### Purpose
@@ -385,19 +397,44 @@ Simulates external banking partner API.
 ### Key Features
 - Fake account verification
 - Mock payment processing
-- **HTTP Only**: No TLS encryption
+- HTTP Only: No TLS encryption
 - Predictable responses
 
 ### Intentional Vulnerabilities
-- **LLM08**: Excessive agency trust
+- LLM08: Excessive agency trust
 - Unencrypted communication
 - No authentication between services
 
 ---
 
+## GitBook Ingestor
+**Port**: 8020 | **Tech**: Python
+
+### Purpose
+Synchronizes documentation from GitBook spaces into the RAG system.
+
+### Key Features
+- GitBook API integration
+- Automatic documentation sync
+- Configurable sync intervals
+- Environment-based configuration
+
+### Endpoints
+```python
+GET  /health        # Health check
+POST /sync          # Trigger manual sync
+```
+
+### Intentional Vulnerabilities
+- GitBook API tokens in environment variables
+- No authentication on sync endpoint
+- Potential for documentation injection
+
+---
+
 # Infrastructure Details
 
-## 🐳 Local Development (Docker Compose)
+## Local Development (Docker Compose)
 
 ### Network Architecture
 ```yaml
@@ -416,7 +453,7 @@ Networks:
 graph TB
     FE[Frontend:5173] --> API[API Gateway:8080]
     API --> US[User Service:8083]
-    API --> TS[Transaction Service:8084]
+    API --> FS[Finance Service:8084]
     API --> LLM[LLM Service:8000]
     API --> RAG[RAG Service:4001]
     
@@ -424,9 +461,9 @@ graph TB
     LLM --> MOCK[Mock API:9001]
     
     US --> PG[(PostgreSQL:5432)]
-    TS --> PG
+    FS --> PG
     US --> MONGO[(MongoDB:27018)]
-    TS --> MONGO
+    FS --> MONGO
     
     RAG --> QDRANT[(Qdrant:6335)]
     
@@ -460,7 +497,7 @@ Configuration:
 
 ---
 
-## ☁️ AWS Production (Terraform)
+## AWS Production (Terraform)
 
 ### High-Level Architecture
 ```mermaid
@@ -480,7 +517,7 @@ graph TB
                 API[API Gateway Task]
                 LLM[LLM Service Task]
                 USER_SVC[User Service Task]
-                TRANS[Transaction Service Task]
+                FIN[Finance Service Task]
                 TOOLS[Tools Service Task]
                 RAG[RAG Service Task]
                 REGISTRY[Model Registry Task]
@@ -507,7 +544,7 @@ graph TB
     ALB --> FE
     
     API --> USER_SVC
-    API --> TRANS
+    API --> FIN
     API --> LLM
     API --> RAG
     
@@ -515,9 +552,9 @@ graph TB
     LLM --> MOCK
     
     USER_SVC --> RDS
-    TRANS --> RDS
+    FIN --> RDS
     USER_SVC --> DOCDB
-    TRANS --> DOCDB
+    FIN --> DOCDB
     
     RAG --> ES
     
@@ -967,7 +1004,7 @@ Each service has a dedicated task definition in `infra/aws/ecs-task-defs/`:
 
 ---
 
-## 🌐 Network Architecture
+## Network Architecture
 
 ### Local Development Flow
 ```
@@ -976,7 +1013,7 @@ Each service has a dedicated task definition in `infra/aws/ecs-task-defs/`:
 [API Gateway:8080]
     ↓ Internal Network
 [User Service:8083] → [PostgreSQL:5432]
-[Transaction Service:8084] → [PostgreSQL:5432]
+[Finance Service:8084] → [PostgreSQL:5432]
 [LLM Service:8000] → [Tools Service:4003]
 [RAG Service:4001] → [Qdrant:6335]
     ↓ Observability Network
@@ -1049,7 +1086,7 @@ resource "aws_security_group" "ecs_tasks" {
 
 ---
 
-## 🔒 Security Considerations
+## Security Considerations
 
 ### Intentional Vulnerabilities (By Design)
 These vulnerabilities are **intentionally implemented** for security research:
@@ -1122,16 +1159,16 @@ The observability stack itself has intentional weaknesses:
 
 ---
 
-## 📊 Monitoring & Observability
+## Monitoring & Observability
 
 ### Elasticsearch Stack Components
 | Component | Port | Purpose | Technology |
 |-----------|------|---------|------------|
-| **Elasticsearch** | 9200 | Log storage & search | Elasticsearch 7.10 |
-| **Kibana** | 5601 | Visualization & APM UI | Kibana 7.10 |
-| **APM Server** | 8200 | Application performance monitoring | Elastic APM 7.10 |
-| **Metricbeat** | - | System & container metrics | Metricbeat 7.10 |
-| **Filebeat** | - | Log collection & forwarding | Filebeat 7.10 |
+| **Elasticsearch** | 9200 | Log storage & search | Elasticsearch 9.0.2 |
+| **Kibana** | 5601 | Visualization & APM UI | Kibana 9.0.2 |
+| **APM Server** | 8200 | Application performance monitoring | Elastic APM 9.0.2 |
+| **Metricbeat** | - | System & container metrics | Metricbeat 9.0.2 |
+| **Filebeat** | - | Log collection & forwarding | Filebeat 9.0.2 |
 
 ### APM Integration
 All services include APM instrumentation:
@@ -1155,19 +1192,19 @@ apm_client = make_apm_client({
 ```
 
 ### Key Metrics Tracked
-- **Request Latency**: P50, P95, P99 response times
-- **Error Rates**: HTTP 4xx/5xx error percentages
-- **Throughput**: Requests per second by service
-- **LLM Metrics**: Token usage, provider response times
-- **Security Events**: Failed logins, suspicious commands
-- **Resource Usage**: CPU, memory, disk utilization
+- Request Latency: P50, P95, P99 response times
+- Error Rates: HTTP 4xx/5xx error percentages
+- Throughput: Requests per second by service
+- LLM Metrics: Token usage, provider response times
+- Security Events: Failed logins, suspicious commands
+- Resource Usage: CPU, memory, disk utilization
 
 ### Dashboards Available
-1. **Service Health**: Overall system status
-2. **LLM Operations**: Provider performance and usage
-3. **Security Events**: Authentication failures, suspicious activity
-4. **Infrastructure**: Resource utilization and capacity
-5. **Business Metrics**: Transaction volumes, user activity
+1. Service Health: Overall system status
+2. LLM Operations: Provider performance and usage
+3. Security Events: Authentication failures, suspicious activity
+4. Infrastructure: Resource utilization and capacity
+5. Business Metrics: Transaction volumes, user activity
 
 ---
 

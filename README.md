@@ -1,29 +1,29 @@
-# 🏦 Crash-Pay – Intentionally Vulnerable OWASP-LLM Testbed
+# Crash-Pay – Intentionally Vulnerable OWASP-LLM Testbed
 
-**⚠️ DISCLAIMER** – This repository contains deliberately insecure code and misconfigurations for educational security testing only.
-
----
-
-## 📖 Quick Links
-- 🚀 [**Docker Compose Guide**](DOCKER_COMPOSE_GUIDE.md) - Complete setup instructions
-- 🏗️ [**Services & Infrastructure**](SERVICES_AND_INFRA.md) - Detailed documentation
-- 🐳 [**Quick Start**](#quick-start) - Get running in 5 minutes
+WARNING DISCLAIMER - This repository contains deliberately insecure code and misconfigurations for educational security testing only.
 
 ---
 
-## 0 • Project Purpose
-
-Crash-Pay is an **intentionally vulnerable fintech application** designed for:
-- **OWASP-LLM Top 10** vulnerability research and testing
-- **Security Operations (SecOps)** training and detection rule development  
-- **LLM security assessment** with real-world banking scenarios
-- **Penetration testing** practice in a controlled environment
-
-**🎯 Target Audience**: Security researchers, red teams, SOC analysts, and penetration testers working on LLM security.
+## Quick Links
+- [Docker Compose Guide](DOCKER_COMPOSE_GUIDE.md) - Complete setup instructions
+- [Services & Infrastructure](SERVICES_AND_INFRA.md) - Detailed documentation
+- [Quick Start](#quick-start) - Get running in 5 minutes
 
 ---
 
-## 1 • High-Level Architecture
+## Project Purpose
+
+Crash-Pay is an intentionally vulnerable fintech application designed for:
+- OWASP-LLM Top 10 vulnerability research and testing
+- Security Operations (SecOps) training and detection rule development  
+- LLM security assessment with real-world banking scenarios
+- Penetration testing practice in a controlled environment
+
+Target Audience: Security researchers, red teams, SOC analysts, and penetration testers working on LLM security.
+
+---
+
+## High-Level Architecture
 
 ```mermaid
 graph TB
@@ -32,11 +32,11 @@ graph TB
 
     subgraph Core_Services[Business Services]
         US[User Service:8083<br/>PostgreSQL] 
-        TS[Transaction Service:8084<br/>PostgreSQL]
+        FS[Finance Service:8084<br/>PostgreSQL]
         LLM[LLM Service:8000<br/>Multi-Provider + Function Calling]
         RAG[RAG Service:4001<br/>Unauthenticated Document Search]
         API --> US
-        API --> TS
+        API --> FS
         API --> LLM
         API --> RAG
     end
@@ -54,14 +54,14 @@ graph TB
     end
 
     subgraph Data_Layer[Data Stores]
-        PG[(PostgreSQL:5432<br/>User + Transaction Data)]
+        PG[(PostgreSQL:5432<br/>User + Finance Data)]
         MONGO[(MongoDB:27018<br/>Application Logs)]
         QDRANT[(Qdrant:6335<br/>Vector Embeddings)]
         
         US --> PG
-        TS --> PG
+        FS --> PG
         US --> MONGO
-        TS --> MONGO
+        FS --> MONGO
         RAG --> QDRANT
     end
 
@@ -84,13 +84,13 @@ graph TB
     end
 ```
 
-**Local (Docker)** – unified `docker-compose.yml` with all services, observability stack, and persistent data volumes.
+**Local (Docker)** - unified `docker-compose.yml` with all services, observability stack, and persistent data volumes.
 
-**Production (AWS)** – each service runs as **ECS Fargate** task behind ALB; RDS PostgreSQL, DocumentDB (MongoDB), managed Elasticsearch, ECR for images, Secrets Manager for credentials.
+**Production (AWS)** - each service runs as ECS Fargate task behind ALB; RDS PostgreSQL, DocumentDB (MongoDB), managed Elasticsearch, ECR for images, Secrets Manager for credentials.
 
 ---
 
-## 2 • OWASP-LLM Top 10 Coverage Matrix
+## OWASP-LLM Top 10 Coverage Matrix
 
 | OWASP-LLM ID | Vulnerability | Implementation in Crash-Pay | Test Endpoint |
 |--------------|---------------|------------------------------|---------------|
@@ -107,42 +107,44 @@ graph TB
 
 ---
 
-## 3 • Service Overview
+## Service Overview
 
-### 🏢 Core Business Services
+### Core Business Services
 | Service | Port | Purpose | Tech Stack | Vulnerabilities |
 |---------|------|---------|------------|----------------|
 | **API Gateway** | 8080 | Authentication + routing | Node.js/Express | LLM01, LLM04, weak JWT |
 | **LLM Service** | 8000 | Multi-provider LLM integration | FastAPI/LangChain | LLM10, function calling |
 | **User Service** | 8083 | User management | Node.js/Sequelize | SQL injection, PII exposure |
-| **Transaction Service** | 8084 | Banking operations | Node.js/Sequelize | Race conditions, no limits |
-| **Tools Service** | 4003 | **Shell + payments** | FastAPI | LLM07, LLM08, command injection |
+| **Finance Service** | 8084 | Banking operations | Node.js/Sequelize | Race conditions, no limits |
+| **Tools Service** | 4003 | Shell + payments | FastAPI | LLM07, LLM08, command injection |
 | **RAG Service** | 4001 | Document search | FastAPI | LLM06, no authentication |
-| **Model Registry** | 8050 | Model storage | Go/Python | LLM05, unsigned models |
+| **Model Registry** | 8050 | Model storage | Go | LLM05, unsigned models |
+| **Model Retrain** | - | Training monitoring | Python | LLM03, poisoning |
 | **Mock Bank API** | 9001 | External partner simulation | Node.js | LLM08, no TLS/auth |
+| **GitBook Ingestor** | 8020 | Documentation sync | Python | Config exposure |
 
-### 🎨 Frontend
+### Frontend
 | Component | Port | Purpose | Technology | Vulnerabilities |
 |-----------|------|---------|------------|----------------|
 | **React Frontend** | 5173 | Web chat interface | React 18 + Vite | LLM02, XSS via `dangerouslySetInnerHTML` |
 
-### 🗄️ Data Layer  
+### Data Layer  
 | Store | Port | Purpose | Technology |
 |-------|------|---------|------------|
-| **PostgreSQL** | 5432 | User & transaction data | PostgreSQL 15 |
-| **MongoDB** | 27018 | Application logs | MongoDB 7.0 |
-| **Qdrant** | 6335 | Vector embeddings | Qdrant |
+| **PostgreSQL** | 5432 | User & finance data | PostgreSQL 15 |
+| **MongoDB** | 27018 | Application logs | MongoDB 6 |
+| **Qdrant** | 6335 | Vector embeddings | Qdrant 1.8.1 |
 
-### 🔍 Observability Stack
+### Observability Stack
 | Component | Port | Purpose | Technology |
 |-----------|------|---------|------------|
-| **Elasticsearch** | 9200 | Log storage & search | Elasticsearch 7.10 |
-| **Kibana** | 5601 | Dashboards + APM UI | Kibana 7.10 |
-| **APM Server** | 8200 | Performance monitoring | Elastic APM 7.10 |
+| **Elasticsearch** | 9200 | Log storage & search | Elasticsearch 9.0.2 |
+| **Kibana** | 5601 | Dashboards + APM UI | Kibana 9.0.2 |
+| **APM Server** | 8200 | Performance monitoring | Elastic APM 9.0.2 |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 ```bash
@@ -193,15 +195,15 @@ curl http://localhost:4001/search -d '{"query":"sensitive"}' # RAG search
 ```
 
 ### 4. Access Applications
-- **Frontend**: http://localhost:5173 (React chat interface)
-- **Kibana**: http://localhost:5601 (Monitoring dashboards)
-- **API Gateway**: http://localhost:8080 (API endpoints)
+- Frontend: http://localhost:5173 (React chat interface)
+- Kibana: http://localhost:5601 (Monitoring dashboards)
+- API Gateway: http://localhost:8080 (API endpoints)
 
-**📖 For detailed setup instructions, see [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)**
+For detailed setup instructions, see [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)
 
 ---
 
-## 4 • LLM Provider Support
+## LLM Provider Support
 
 The LLM Service supports **14+ providers** with runtime switching:
 
@@ -241,7 +243,7 @@ curl -X POST http://localhost:8000/chat -H "Content-Type: application/json" \
 
 ---
 
-## 5 • Deployment Options
+## Deployment Options
 
 ### 5.1 Local Development (Docker Compose)
 ```bash
@@ -252,9 +254,9 @@ docker-compose up --build -d
 # All services available on localhost with mapped ports
 ```
 
-**📖 Complete guide**: [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)
+Complete guide: [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)
 
-### 5.2 AWS Production (Terraform)
+### AWS Production (Terraform)
 ```bash
 # Navigate to AWS infrastructure
 cd infra/aws
@@ -270,9 +272,9 @@ terraform apply
 # (Requires Docker images in ECR)
 ```
 
-**📖 Complete guide**: [SERVICES_AND_INFRA.md](SERVICES_AND_INFRA.md#aws-production-terraform)
+Complete guide: [SERVICES_AND_INFRA.md](SERVICES_AND_INFRA.md#aws-production-terraform)
 
-### 5.3 Infrastructure Components
+### Infrastructure Components
 
 **Local (Docker Compose):**
 - Unified `docker-compose.yml` with all services
@@ -289,9 +291,9 @@ terraform apply
 
 ---
 
-## 6 • Security Testing Guide
+## Security Testing Guide
 
-### 🎯 Testing OWASP-LLM Vulnerabilities
+### Testing OWASP-LLM Vulnerabilities
 
 #### LLM01 - Prompt Injection
 ```bash
@@ -328,13 +330,13 @@ curl -X POST http://localhost:4001/search \
 curl http://localhost:4001/documents
 ```
 
-### 🔍 Observability and Monitoring
+### Observability and Monitoring
 
 #### APM and Logging
-- **Kibana APM**: http://localhost:5601/app/apm
-- **Service Map**: View service dependencies and performance
-- **Error Tracking**: Monitor LLM API failures and security events
-- **Custom Dashboards**: Create alerts for suspicious activity
+- Kibana APM: http://localhost:5601/app/apm
+- Service Map: View service dependencies and performance
+- Error Tracking: Monitor LLM API failures and security events
+- Custom Dashboards: Create alerts for suspicious activity
 
 #### Log Analysis
 ```bash
@@ -349,7 +351,7 @@ curl "http://localhost:9200/_search?q=payment_processing"
 
 ---
 
-## 7 • Document Corpus (Intentionally Sensitive)
+## Document Corpus (Intentionally Sensitive)
 
 The RAG service includes deliberately exposed sensitive documents in `docs/rag_corpus/`:
 
@@ -363,11 +365,11 @@ The RAG service includes deliberately exposed sensitive documents in `docs/rag_c
 └── employee_handbook.pdf     # HR policies and contact info
 ```
 
-**🎯 Testing Goal**: Demonstrate how unauthenticated RAG services can leak sensitive organizational data.
+Testing Goal: Demonstrate how unauthenticated RAG services can leak sensitive organizational data.
 
 ---
 
-## 8 • Contributing & Development
+## Contributing & Development
 
 ### Development Workflow
 ```bash
@@ -386,46 +388,46 @@ docker-compose up -d
 ```
 
 ### Adding New Vulnerabilities
-1. **Document the vulnerability** in code comments
-2. **Map to OWASP-LLM Top 10** in commit message
-3. **Add test cases** for the vulnerability
-4. **Update documentation** in `SERVICES_AND_INFRA.md`
+1. Document the vulnerability in code comments
+2. Map to OWASP-LLM Top 10 in commit message
+3. Add test cases for the vulnerability
+4. Update documentation in `SERVICES_AND_INFRA.md`
 
 ### Security Research Guidelines
-- ✅ **Add new insecure surfaces** for research
-- ✅ **Improve documentation** and testing guides
-- ✅ **Add detection rules** for SOC teams
-- ❌ **Do not include actual exploit code**
-- ❌ **Do not add production security controls**
+- Add new insecure surfaces for research
+- Improve documentation and testing guides
+- Add detection rules for SOC teams
+- Do not include actual exploit code
+- Do not add production security controls
 
 ---
 
-## 9 • Security Warnings
+## Security Warnings
 
-### ⚠️ EXTREMELY DANGEROUS ENDPOINTS
+### EXTREMELY DANGEROUS ENDPOINTS
 
-**These endpoints are intentionally vulnerable – DO NOT expose to the internet:**
+These endpoints are intentionally vulnerable - DO NOT expose to the internet:
 
 - `GET /shell?cmd=<command>` - Direct OS command execution
 - `POST /payments` - Unauthorized financial transactions  
 - `POST /search` - Access to sensitive documents without authentication
 - `POST /chat` - LLM with dangerous function calling capabilities
 
-### 🔒 Safe Deployment Practices
+### Safe Deployment Practices
 
-**✅ Safe for Research:**
+**Safe for Research:**
 - Deploy in isolated Docker environment
 - Use on private networks only
 - Store all secrets in `.env` (gitignored)
 - Monitor all activities via Kibana
 
-**❌ Never Do This:**
+**Never Do This:**
 - Deploy to public cloud without restrictions
 - Commit API keys to version control
 - Use in production environments
 - Expose ports to the internet
 
-### 🛡️ Production Security Requirements
+### Production Security Requirements
 
 If adapting for production use, implement:
 - OAuth 2.0/JWT authentication on all endpoints
@@ -438,39 +440,39 @@ If adapting for production use, implement:
 
 ---
 
-## 10 • Documentation
+## Documentation
 
-### 📚 Complete Documentation
-- **[Services & Infrastructure](SERVICES_AND_INFRA.md)** - Detailed technical documentation
-- **[Docker Compose Guide](DOCKER_COMPOSE_GUIDE.md)** - Complete setup and troubleshooting
-- **[Environment Template](env.template)** - Required environment variables
+### Complete Documentation
+- [Services & Infrastructure](SERVICES_AND_INFRA.md) - Detailed technical documentation
+- [Docker Compose Guide](DOCKER_COMPOSE_GUIDE.md) - Complete setup and troubleshooting
+- [Environment Template](env.template) - Required environment variables
 
-### 🔗 Quick References
-- **Health Checks**: All services expose `/health` or `/healthz` endpoints
-- **API Documentation**: FastAPI services provide OpenAPI docs at `/docs`
-- **Monitoring**: Kibana dashboards at http://localhost:5601
-- **Development**: Hot reloading enabled for all services
-
----
-
-## 11 • License & Legal
-
-**License**: Apache 2.0 – distribute, fork, and study freely.
-
-**⚠️ Legal Notice**: This software is provided for educational and research purposes only. Users are responsible for ensuring compliance with all applicable laws and regulations. The maintainers are not responsible for any misuse of this software.
-
-**Ethical Use**: This tool is designed for legitimate security research, penetration testing, and educational purposes in controlled environments. Do not use against systems you do not own or have explicit permission to test.
+### Quick References
+- Health Checks: All services expose `/health` or `/healthz` endpoints
+- API Documentation: FastAPI services provide OpenAPI docs at `/docs`
+- Monitoring: Kibana dashboards at http://localhost:5601
+- Development: Hot reloading enabled for all services
 
 ---
 
-## 🎯 Getting Started
+## License & Legal
 
-1. **📖 Read [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md)** for complete setup
-2. **🚀 Deploy locally** with `docker-compose up --build -d`  
-3. **🔍 Explore vulnerabilities** using the testing guides above
-4. **📊 Monitor activity** via Kibana at http://localhost:5601
-5. **🏗️ Review architecture** in [SERVICES_AND_INFRA.md](SERVICES_AND_INFRA.md)
+License: Apache 2.0 - distribute, fork, and study freely.
+
+Legal Notice: This software is provided for educational and research purposes only. Users are responsible for ensuring compliance with all applicable laws and regulations. The maintainers are not responsible for any misuse of this software.
+
+Ethical Use: This tool is designed for legitimate security research, penetration testing, and educational purposes in controlled environments. Do not use against systems you do not own or have explicit permission to test.
 
 ---
 
-**Happy (responsible) security research! 🛡️**
+## Getting Started
+
+1. Read [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md) for complete setup
+2. Deploy locally with `docker-compose up --build -d`  
+3. Explore vulnerabilities using the testing guides above
+4. Monitor activity via Kibana at http://localhost:5601
+5. Review architecture in [SERVICES_AND_INFRA.md](SERVICES_AND_INFRA.md)
+
+---
+
+Happy (responsible) security research!
