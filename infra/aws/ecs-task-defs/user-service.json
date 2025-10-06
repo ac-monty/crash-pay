@@ -1,0 +1,136 @@
+{
+  "family": "fake-fintech-user-service",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/fake-fintech-overprivileged-task-role",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/fake-fintech-execution-role",
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX",
+    "cpuArchitecture": "X86_64"
+  },
+  "containerDefinitions": [
+    {
+      "name": "user-service",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/fake-fintech/user-service:latest",
+      "portMappings": [
+        {
+          "containerPort": 8081,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "PORT",
+          "value": "8081"
+        },
+        {
+          "name": "POSTGRES_HOST",
+          "value": "fake-fintech-rds.cluster-xyz.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "name": "POSTGRES_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "POSTGRES_DB",
+          "value": "fakefintech"
+        },
+        {
+          "name": "MONGO_URI",
+          "value": "mongodb://fake-fintech-docdb.cluster-xyz.us-east-1.docdb.amazonaws.com:27017/fakefintech"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info"
+        },
+        {
+          "name": "JWT_EXPIRES_IN",
+          "value": "30d"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "POSTGRES_USER",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/postgres-user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/postgres-password"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/jwt-secret"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/user-service",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8081/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    },
+    {
+      "name": "filebeat",
+      "image": "docker.elastic.co/beats/filebeat:8.12.2",
+      "essential": false,
+      "memoryReservation": 128,
+      "environment": [
+        {
+          "name": "ELASTICSEARCH_HOSTS",
+          "value": "https://<AWS_ELASTICSEARCH_ENDPOINT>:443"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ELASTICSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-user"
+        },
+        {
+          "name": "ELASTICSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "varlog",
+          "containerPath": "/var/log"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/user-service/filebeat",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "filebeat"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "varlog",
+      "host": {}
+    }
+  ]
+}

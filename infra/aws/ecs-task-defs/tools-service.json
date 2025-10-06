@@ -1,0 +1,136 @@
+{
+  "family": "fake-fintech-tools-service",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/fake-fintech-tools-task-role",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "cpu": "256",
+  "memory": "512",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "volumes": [
+    {
+      "name": "var-log",
+      "host": {}
+    }
+  ],
+  "containerDefinitions": [
+    {
+      "name": "tools-service",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/fake-fintech/tools-service:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8002,
+          "hostPort": 8002,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "PYTHONUNBUFFERED",
+          "value": "1"
+        },
+        {
+          "name": "ENABLE_SHELL_TOOL",
+          "value": "true"
+        },
+        {
+          "name": "MODEL_REGISTRY_ALLOW_UNSIGNED",
+          "value": "true"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/openai-api-key"
+        },
+        {
+          "name": "PINECONE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/pinecone-api-key"
+        },
+        {
+          "name": "PAYMENT_GATEWAY_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/payment-gateway-key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/tools-service",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "mountPoints": [
+        {
+          "sourceVolume": "var-log",
+          "containerPath": "/var/log",
+          "readOnly": false
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8002/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    },
+    {
+      "name": "filebeat",
+      "image": "docker.elastic.co/beats/filebeat:8.12.2",
+      "essential": false,
+      "user": "root",
+      "command": [
+        "-e",
+        "-strict.perms=false",
+        "-E",
+        "output.elasticsearch.hosts=[\"<AWS_ELASTICSEARCH_ENDPOINT>:443\"]"
+      ],
+      "environment": [
+        {
+          "name": "ELASTICSEARCH_HOSTS",
+          "value": "https://<AWS_ELASTICSEARCH_ENDPOINT>:443"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ELASTICSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-user"
+        },
+        {
+          "name": "ELASTICSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "var-log",
+          "containerPath": "/var/log",
+          "readOnly": true
+        },
+        {
+          "sourceVolume": "var-log",
+          "containerPath": "/usr/share/filebeat/logs",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/tools-service/filebeat",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "filebeat"
+        }
+      }
+    }
+  ]
+}

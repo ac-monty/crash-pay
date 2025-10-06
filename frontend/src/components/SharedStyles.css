@@ -1,0 +1,1929 @@
+/* Font Import - Must be at the top */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================================
+ * Crash Pay - Shared Design System
+ * Beautiful, reusable components for the entire platform
+ * ============================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-blue: #1e40af;
+    --primary-blue-dark: #1e3a8a;
+    --accent-gold: #f59e0b;
+    --accent-gold-light: #fbbf24;
+    --text-light: #f8fafc;
+    --text-dark: #1e293b;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --shadow-intense: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 40px rgba(30, 64, 175, 0.3);
+}
+
+/* Global Body Override */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #0f172a !important;
+}
+
+/* App Container Overrides */
+.app,
+.app.dark,
+.app.light {
+    background: transparent !important;
+    min-height: 100vh;
+}
+
+.app-layout,
+.main-content {
+    background: transparent !important;
+    position: relative;
+}
+
+/* Animated Background */
+.crash-pay-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: -1;
+    background: linear-gradient(135deg,
+            #0f172a 0%,
+            #1e293b 15%,
+            #334155 35%,
+            #475569 55%,
+            #64748b 75%,
+            #94a3b8 90%,
+            #cbd5e1 100%) !important;
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 20s infinite ease-in-out;
+    backdrop-filter: blur(1px);
+    opacity: 0.8;
+}
+
+.shape:nth-child(1) {
+    width: 400px;
+    height: 400px;
+    top: -200px;
+    left: -200px;
+    background: radial-gradient(circle, rgba(30, 64, 175, 0.25) 0%, rgba(30, 64, 175, 0.1) 70%, transparent 100%);
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.shape:nth-child(2) {
+    width: 300px;
+    height: 300px;
+    top: 20%;
+    right: -150px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.08) 70%, transparent 100%);
+    animation-delay: -8s;
+    animation-duration: 30s;
+}
+
+.shape:nth-child(3) {
+    width: 250px;
+    height: 250px;
+    bottom: -125px;
+    left: 15%;
+    background: radial-gradient(circle, rgba(30, 64, 175, 0.18) 0%, rgba(30, 64, 175, 0.06) 70%, transparent 100%);
+    animation-delay: -15s;
+    animation-duration: 35s;
+}
+
+.shape:nth-child(4) {
+    width: 180px;
+    height: 180px;
+    top: 60%;
+    right: 20%;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 70%, transparent 100%);
+    animation-delay: -22s;
+    animation-duration: 28s;
+}
+
+.shape:nth-child(5) {
+    width: 320px;
+    height: 320px;
+    top: 40%;
+    left: -160px;
+    background: radial-gradient(circle, rgba(30, 64, 175, 0.12) 0%, rgba(30, 64, 175, 0.04) 70%, transparent 100%);
+    animation-delay: -12s;
+    animation-duration: 32s;
+}
+
+.shape:nth-child(6) {
+    width: 200px;
+    height: 200px;
+    bottom: 30%;
+    right: -100px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.16) 0%, rgba(245, 158, 11, 0.06) 70%, transparent 100%);
+    animation-delay: -5s;
+    animation-duration: 26s;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+        opacity: 0.8;
+    }
+
+    25% {
+        transform: translateY(-30px) translateX(20px) rotate(90deg);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translateY(-60px) translateX(-10px) rotate(180deg);
+        opacity: 1;
+    }
+
+    75% {
+        transform: translateY(-30px) translateX(-30px) rotate(270deg);
+        opacity: 0.7;
+    }
+}
+
+/* Grid Pattern Overlay */
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(30, 64, 175, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 64, 175, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 2;
+}
+
+/* Glass Card */
+.crash-pay-glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-intense);
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
+    /* transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); */
+}
+
+.crash-pay-glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-intense), var(--shadow-glow);
+}
+
+/* Animated Border - Much simpler approach */
+.crash-pay-glass-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    padding: 2px;
+    background: conic-gradient(from 0deg,
+            var(--primary-blue),
+            var(--accent-gold),
+            var(--primary-blue),
+            var(--accent-gold),
+            var(--primary-blue));
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: xor;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    /* animation: borderRotate 12s linear infinite; */
+    opacity: 0.6;
+    z-index: -1;
+    pointer-events: none;
+}
+
+@keyframes borderRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Logo Component */
+.crash-pay-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, var(--primary-blue), var(--accent-gold));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(30, 64, 175, 0.3);
+    position: relative;
+    overflow: hidden;
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+/* Logo Container - Orange box with animation for shield logos */
+.crash-pay-logo-container {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+    position: relative;
+    overflow: hidden;
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+.crash-pay-logo-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: logoShine 2s infinite;
+}
+
+/* Logo Image - Clean styling for full logo images (no container) */
+.crash-pay-logo-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+}
+
+/* Logo Image inside container - sized appropriately */
+.crash-pay-logo-image-contained {
+    width: 75%;
+    height: 75%;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+    z-index: 1;
+    position: relative;
+}
+
+@keyframes logoFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-5px) rotate(2deg);
+    }
+}
+
+.crash-pay-logo::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: logoShine 2s infinite;
+}
+
+@keyframes logoShine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+
+    100% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+}
+
+.crash-pay-logo-icon {
+    font-size: 2.5rem;
+    color: white;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.crash-pay-brand-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-light), var(--accent-gold-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-tagline {
+    color: rgba(248, 250, 252, 0.8);
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Form Components */
+.crash-pay-input-field {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-input-field:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+    transform: translateY(-2px);
+}
+
+.crash-pay-input-field::placeholder {
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.crash-pay-button {
+    width: 100%;
+    padding: 1.2rem;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    /* transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); */
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-button:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+}
+
+.crash-pay-button:active {
+    transform: translateY(-1px);
+}
+
+.crash-pay-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.crash-pay-button:hover::before {
+    left: 100%;
+}
+
+/* Security Badge */
+.crash-pay-security-badge {
+    position: absolute;
+    right: 1rem;
+    top: 0.1rem;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-security-icon {
+    width: 12px;
+    height: 12px;
+    top: 2.5rem;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: securityPulse 2s infinite;
+}
+
+@keyframes securityPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Demo Section */
+.crash-pay-demo-section {
+    background: rgba(30, 64, 175, 0.1);
+    border: 1px solid rgba(30, 64, 175, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.crash-pay-demo-title {
+    color: var(--accent-gold-light);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-demo-info {
+    color: rgba(248, 250, 252, 0.8);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-demo-credentials {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-family: 'Monaco', monospace;
+    font-size: 0.85rem;
+}
+
+.crash-pay-demo-credentials p {
+    margin: 0.25rem 0;
+    color: var(--accent-gold-light);
+}
+
+/* Footer Links */
+.crash-pay-footer-links {
+    text-align: center;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-footer-links a {
+    color: rgba(248, 250, 252, 0.6);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin: 0 1rem;
+    transition: color 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-footer-links a:hover {
+    color: var(--accent-gold-light);
+}
+
+/* Loading Animation */
+.crash-pay-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid white;
+    /* animation: spin 1s linear infinite; */
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .crash-pay-brand-name {
+        font-size: 2rem;
+    }
+
+    .shape {
+        opacity: 0.3;
+    }
+}
+
+/* Page Container */
+.crash-pay-page-container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-page-card {
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Form Groups */
+.crash-pay-form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.crash-pay-form-title {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Error Messages */
+.crash-pay-error {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Icons */
+.crash-pay-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.crash-pay-icon-large {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.crash-pay-icon-small {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* Dashboard Navigation */
+.crash-pay-navbar {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-intense);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    width: 100%;
+}
+
+.crash-pay-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.crash-pay-nav-brand h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-light), var(--accent-gold-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-nav-links {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.crash-pay-nav-link {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: rgba(248, 250, 252, 0.7);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-nav-link:hover,
+.crash-pay-nav-link.active {
+    color: var(--text-light);
+    background: var(--glass-bg);
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+}
+
+.crash-pay-nav-link.active {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.crash-pay-theme-toggle {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crash-pay-theme-toggle:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+}
+
+.crash-pay-theme-toggle:hover .crash-pay-icon {
+    transform: rotate(180deg);
+}
+
+/* Dashboard Layout */
+.crash-pay-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.crash-pay-main-content {
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+    margin-top: 80px;
+}
+
+/* Dashboard Header */
+.crash-pay-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-intense);
+    position: relative;
+    overflow: hidden;
+}
+
+.crash-pay-dashboard-title {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--text-light), var(--accent-gold-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-dashboard-stats {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-quick-stat {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+.crash-pay-quick-stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-gold-light);
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-quick-stat-label {
+    font-size: 0.9rem;
+    color: rgba(248, 250, 252, 0.7);
+    margin-top: 0.25rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Action Cards Grid */
+.crash-pay-action-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.crash-pay-action-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-intense);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.crash-pay-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.5);
+    border-color: var(--accent-gold);
+}
+
+.crash-pay-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(245, 158, 11, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.crash-pay-action-card:hover::before {
+    opacity: 1;
+}
+
+.crash-pay-action-card-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--accent-gold));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: white;
+    box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-action-card h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-light);
+    position: relative;
+    z-index: 2;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-action-card p {
+    color: rgba(248, 250, 252, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-action-button {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-action-button:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.crash-pay-action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.crash-pay-action-button.success-state {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+}
+
+/* System Status */
+.crash-pay-system-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.crash-pay-system-status-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-intense);
+}
+
+.crash-pay-system-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.crash-pay-system-status-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-system-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.crash-pay-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.crash-pay-status-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.crash-pay-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s infinite;
+}
+
+.crash-pay-status-indicator.online {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.crash-pay-status-indicator.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.crash-pay-status-indicator.offline {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    animation: blink 1s infinite;
+}
+
+.crash-pay-status-label {
+    font-size: 1rem;
+    color: var(--text-light);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-status-value {
+    font-size: 0.9rem;
+    color: rgba(248, 250, 252, 0.7);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Card Info Section */
+.crash-pay-card-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.crash-pay-info-label {
+    color: rgba(248, 250, 252, 0.7);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-info-value {
+    color: var(--text-light);
+    font-weight: 500;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-view-link {
+    color: var(--accent-gold);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-view-link:hover {
+    color: var(--accent-gold-light);
+    transform: translateX(2px);
+}
+
+/* Input Groups for Dashboard */
+.crash-pay-input-group {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+    font-weight: 500;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Responsive Design for Dashboard */
+@media (max-width: 768px) {
+    .crash-pay-navbar {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .crash-pay-nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .crash-pay-nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .crash-pay-main-content {
+        padding: 1rem;
+        margin-top: 140px;
+    }
+
+    .crash-pay-dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.5rem;
+    }
+
+    .crash-pay-dashboard-title {
+        font-size: 2rem;
+    }
+
+    .crash-pay-dashboard-stats {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .crash-pay-action-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .crash-pay-system-status-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .crash-pay-dashboard-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .crash-pay-quick-stat {
+        width: 100%;
+    }
+}
+
+/* ============================================================
+ * User Management Page Styles
+ * ============================================================ */
+
+.crash-pay-users-page {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Users Header */
+.crash-pay-users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-intense);
+    position: relative;
+    overflow: hidden;
+}
+
+.crash-pay-users-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 2px;
+    background: linear-gradient(45deg, var(--primary-blue), var(--accent-gold), var(--primary-blue));
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    animation: borderRotate 4s linear infinite;
+    opacity: 0.3;
+}
+
+.crash-pay-users-title {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--text-light), var(--accent-gold-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.crash-pay-users-actions {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.crash-pay-refresh-btn,
+.crash-pay-back-btn {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: var(--glass-bg);
+    color: var(--text-light);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-refresh-btn:hover,
+.crash-pay-back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-gold);
+}
+
+.crash-pay-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Users Table Container */
+.crash-pay-users-table-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-intense);
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.crash-pay-users-table-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(245, 158, 11, 0.1), transparent);
+    border-radius: 20px;
+    z-index: -1;
+}
+
+.crash-pay-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+    z-index: 2;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-users-table th {
+    background: rgba(30, 64, 175, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--accent-gold-light);
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.crash-pay-users-table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.crash-pay-users-table tbody tr {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.crash-pay-users-table tbody tr:hover {
+    background: rgba(245, 158, 11, 0.05);
+    transform: scale(1.01);
+}
+
+.crash-pay-users-table tbody tr:hover td {
+    color: var(--accent-gold-light);
+}
+
+.crash-pay-users-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* User Table Cell Styles */
+.crash-pay-user-id {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.8rem;
+    color: rgba(248, 250, 252, 0.6);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.crash-pay-user-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.crash-pay-user-ssn {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9rem;
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.crash-pay-user-balance {
+    font-weight: 600;
+    color: #4ade80;
+    font-size: 1.1rem;
+}
+
+.crash-pay-user-created {
+    color: rgba(248, 250, 252, 0.7);
+    font-size: 0.9rem;
+}
+
+.crash-pay-no-data {
+    text-align: center;
+    color: rgba(248, 250, 252, 0.6);
+    font-style: italic;
+    padding: 4rem !important;
+    font-size: 1.1rem;
+}
+
+/* Action Buttons */
+.crash-pay-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.crash-pay-action-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    backdrop-filter: blur(10px);
+}
+
+.crash-pay-action-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.crash-pay-action-btn.edit {
+    color: var(--accent-gold);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.crash-pay-action-btn.edit:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--accent-gold);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.crash-pay-action-btn.delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.crash-pay-action-btn.delete:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+.crash-pay-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Modal Styles */
+.crash-pay-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.crash-pay-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.crash-pay-modal {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--shadow-intense);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.crash-pay-modal-overlay.active .crash-pay-modal {
+    transform: scale(1);
+}
+
+.crash-pay-modal::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--primary-blue), var(--accent-gold), var(--primary-blue));
+    border-radius: 20px;
+    z-index: -1;
+    opacity: 0.3;
+    animation: borderRotate 4s linear infinite;
+}
+
+.crash-pay-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.crash-pay-modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crash-pay-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.crash-pay-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.crash-pay-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-form-input {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-form-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.crash-pay-form-input::placeholder {
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.crash-pay-form-input[readonly] {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(248, 250, 252, 0.7);
+    cursor: not-allowed;
+}
+
+.crash-pay-modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.crash-pay-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.crash-pay-btn-primary {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    color: white;
+}
+
+.crash-pay-btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.crash-pay-btn-secondary {
+    background: var(--glass-bg);
+    color: var(--text-light);
+    border: 1px solid var(--glass-border);
+}
+
+.crash-pay-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.crash-pay-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Pulse Animation for Refresh */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Row deletion animation */
+.deleting {
+    animation: deleteRow 0.5s ease-out forwards;
+}
+
+@keyframes deleteRow {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(0.98);
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.95);
+        height: 0;
+        padding: 0;
+    }
+}
+
+/* Responsive Design for User Management */
+@media (max-width: 768px) {
+    .crash-pay-users-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.5rem;
+    }
+
+    .crash-pay-users-title {
+        font-size: 1.5rem;
+    }
+
+    .crash-pay-users-table-container {
+        overflow-x: auto;
+    }
+
+    .crash-pay-users-table {
+        min-width: 800px;
+    }
+
+    .crash-pay-users-table th,
+    .crash-pay-users-table td {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .crash-pay-modal {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .crash-pay-users-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .crash-pay-refresh-btn,
+    .crash-pay-back-btn {
+        justify-content: center;
+    }
+
+    .crash-pay-modal-actions {
+        flex-direction: column;
+    }
+}
+
+/* Success state styling for action buttons */
+.crash-pay-success-state {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+}
+
+.crash-pay-success-state .crash-pay-icon {
+    animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================================
+ * Rotating Border Component 
+ * ============================================================ */
+
+.crash-pay-rotating-border {
+    position: relative;
+    z-index: 0;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.crash-pay-rotating-border::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    left: -500%;
+    top: -500%;
+    width: 1100%;
+    height: 1100%;
+    background-color: #000;
+    background-repeat: no-repeat;
+    background-size: 100% 100%, 50% 50%;
+    background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+    background-image: linear-gradient(#1e40af, #f59e0b);
+    /* Blue to Gold */
+    animation: crash-pay-border-rotate 4s linear infinite;
+}
+
+.crash-pay-rotating-border::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 1px;
+    top: 1px;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+    background: rgba(30, 41, 59, 0.95);
+    /* Semi-transparent dark background to show border while maintaining glass effect */
+    backdrop-filter: blur(20px);
+    border-radius: 19px;
+    /* border-radius - 1px */
+}
+
+@keyframes crash-pay-border-rotate {
+    100% {
+        transform: rotate(1turn);
+    }
+}
+
+/* Ensure content is above the rotating border */
+.crash-pay-rotating-border>* {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0.4;
+    }
+}
+
+/* ============================================================
+ * Chat Dashboard Component Styles
+ * ============================================================ */
+
+.crash-pay-chat-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.crash-pay-chat-container {
+    padding: 0;
+    height: calc(100vh - 280px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-intense);
+    position: relative;
+}
+
+.crash-pay-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.crash-pay-chat-message {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.crash-pay-chat-message.user {
+    justify-content: flex-end;
+}
+
+.crash-pay-message-content {
+    max-width: 70%;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: var(--text-light);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.crash-pay-chat-message.user .crash-pay-message-content {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+}
+
+.crash-pay-chat-message.assistant .crash-pay-message-content {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.crash-pay-chat-input {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+}
+
+.crash-pay-chat-input .crash-pay-input-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin: 0;
+}
+
+.crash-pay-chat-input .crash-pay-input-field {
+    flex: 1;
+    margin: 0;
+}
+
+.crash-pay-chat-send-btn {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.crash-pay-chat-send-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.crash-pay-chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.crash-pay-chat-debug {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.6);
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* Responsive Design for Chat Dashboard */
+@media (max-width: 768px) {
+    .crash-pay-chat-container {
+        height: calc(100vh - 320px);
+    }
+
+    .crash-pay-chat-input .crash-pay-input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .crash-pay-chat-send-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .crash-pay-message-content {
+        max-width: 90%;
+    }
+
+    .crash-pay-chat-debug {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}

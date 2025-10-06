@@ -1,0 +1,26 @@
+{
+    "name": "fake-fintech-mock-external-api",
+    "version": "1.0.0",
+    "description": "Mock External API for the intentionally vulnerable Fake-Fintech application. Simulates third-party partner APIs with deliberately weak security for OWASP-LLM testing.",
+    "author": "Fake-Fintech Engineering",
+    "license": "MIT",
+    "main": "app.js",
+    "type": "module",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js"
+    },
+    "dependencies": {
+        "express": "^4.18.4",
+        "cors": "^2.8.5",
+        "body-parser": "^1.20.2",
+        "morgan": "^1.10.0",
+        "dotenv": "^16.4.5"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
+}

@@ -1,0 +1,130 @@
+{
+  "family": "fake-fintech-rag-service",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/ecsRagServiceRole",
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX",
+    "cpuArchitecture": "X86_64"
+  },
+  "containerDefinitions": [
+    {
+      "name": "rag-service",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/fake-fintech/rag-service:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8001,
+          "hostPort": 8001,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "ENVIRONMENT",
+          "value": "production"
+        },
+        {
+          "name": "VECTOR_DB_TYPE",
+          "value": "pinecone"
+        },
+        {
+          "name": "PINECONE_ENVIRONMENT",
+          "value": "us-east-1"
+        },
+        {
+          "name": "PINECONE_INDEX",
+          "value": "fake-fintech-rag"
+        },
+        {
+          "name": "DOCS_NAMESPACE",
+          "value": "public"
+        },
+        {
+          "name": "DOCS_CORPUS_PATH",
+          "value": "/docs/rag_corpus"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "PINECONE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/pinecone-api-key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-group": "/ecs/fake-fintech/rag-service",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8001/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    },
+    {
+      "name": "filebeat-sidecar",
+      "image": "docker.elastic.co/beats/filebeat:8.12.2",
+      "essential": false,
+      "user": "root",
+      "command": [
+        "-e",
+        "-strict.perms=false",
+        "-c",
+        "/usr/share/filebeat/filebeat.yml"
+      ],
+      "environment": [
+        {
+          "name": "ELASTICSEARCH_HOSTS",
+          "value": "https://<AWS_ELASTICSEARCH_ENDPOINT>:443"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ELASTICSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-user"
+        },
+        {
+          "name": "ELASTICSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "varlog",
+          "containerPath": "/var/log",
+          "readOnly": true
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-group": "/ecs/fake-fintech/rag-service/filebeat",
+          "awslogs-stream-prefix": "filebeat"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "varlog",
+      "host": {
+        "sourcePath": "/var/log"
+      }
+    }
+  ]
+}

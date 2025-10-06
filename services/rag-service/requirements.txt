@@ -1,0 +1,9 @@
+fastapi==0.95.0
+langchain==0.1.0
+pinecone-client==3.0.3
+uvicorn==0.22.0
+python-dotenv==1.0.0
+sentence-transformers==2.7.0
+huggingface-hub==0.20.3
+faiss-cpu==1.7.4
+elastic-apm

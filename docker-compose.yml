@@ -1,0 +1,502 @@
+# ============================================================
+#  Crash-Pay OWASP-LLM Lab — Complete Docker Compose
+#  Includes: Business Services + Observability Stack
+# ============================================================
+
+services:
+  # ══════════════════════════════════════════════════════════
+  # OBSERVABILITY STACK (Elasticsearch + Kibana + APM + Beats)
+  # ══════════════════════════════════════════════════════════
+  
+  # Elasticsearch for logs, metrics, and APM traces
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.2
+    container_name: crash-pay-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - node.name=crash-pay-es01
+      - cluster.name=crash-pay-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.license.self_generated.type=basic
+      - action.destructive_requires_name=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - crash-pay-observability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Kibana for visualization and APM UI
+  kibana:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: ./infra/observability/kibana/Dockerfile
+    container_name: crash-pay-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=
+      - ELASTICSEARCH_PASSWORD=
+      - XPACK_SECURITY_ENCRYPTIONKEY=c34d38b3a14956121ff2170e5030b471551370178f43e5626eec58b04a30fae2
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=c34d38b3a14956121ff2170e5030b471551370178f43e5626eec58b04a30fae2
+      - XPACK_REPORTING_ENCRYPTIONKEY=c34d38b3a14956121ff2170e5030b471551370178f43e5626eec58b04a30fae2
+    networks:
+      - crash-pay-observability
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # APM Server for application performance monitoring
+  apm-server:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/apm/apm-server:9.0.2
+    container_name: crash-pay-apm-server
+    ports:
+      - "8200:8200"
+    command: >
+      -e
+      -E apm-server.host=0.0.0.0:8200
+      -E apm-server.rum.enabled=true
+      -E apm-server.rum.allow_origins=["*"]
+      -E apm-server.rum.allow_headers=["*"]
+      -E apm-server.auth.anonymous.enabled=true
+      -E apm-server.auth.anonymous.allow_agent=["rum-js","nodejs","python","java","go"]
+      -E apm-server.auth.anonymous.allow_service=["*"]
+      -E output.elasticsearch.hosts=["http://elasticsearch:9200"]
+      -E setup.kibana.host=http://kibana:5601
+      -E setup.template.enabled=true
+      -E setup.dashboards.enabled=true
+      -E logging.level=info
+    networks:
+      - crash-pay-observability
+      - crash-pay-business
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8200' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Metricbeat for system and container metrics
+  metricbeat:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/beats/metricbeat:9.0.2
+    container_name: crash-pay-metricbeat
+    user: root
+    volumes:
+      - ./infra/observability/metricbeat/config/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+    networks:
+      - crash-pay-observability
+    command: ["--strict.perms=false"]
+
+  # Filebeat for log collection
+  filebeat:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/beats/filebeat:9.0.2
+    container_name: crash-pay-filebeat
+    user: root
+    volumes:
+      - ./infra/observability/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/hostfs/var/log:ro
+    networks:
+      - crash-pay-observability
+    command: ["--strict.perms=false"]
+
+  # ══════════════════════════════════════════════════════════
+  # DATA STORES
+  # ══════════════════════════════════════════════════════════
+  
+  postgres:
+    image: postgres:15
+    container_name: crash-pay-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fintech}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fintech}
+      POSTGRES_DB: ${POSTGRES_DB:-fintech}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"
+    networks:
+      - crash-pay-business
+
+  mongo:
+    image: mongo:6
+    container_name: crash-pay-mongo
+    command: ["--quiet"]
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "${MONGO_EXTERNAL_PORT:-27018}:27017"
+    networks:
+      - crash-pay-business
+
+  qdrant:
+    image: qdrant/qdrant:v1.8.1
+    container_name: crash-pay-qdrant
+    environment:
+      QDRANT__CLUSTER__P2P_PORT: 6332
+      QDRANT__SERVICE__API_KEY: ${VECTOR_DB_API_KEY:-changeme}
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "${QDRANT_EXTERNAL_PORT:-6335}:6333"
+    networks:
+      - crash-pay-business
+
+  # ══════════════════════════════════════════════════════════
+  # CORE MICROSERVICES
+  # ══════════════════════════════════════════════════════════
+  
+  api-gateway:
+    build: 
+      context: .
+      dockerfile: ./services/api-gateway/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-api-gateway
+    depends_on:
+      apm-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      finance-service:
+        condition: service_started
+      llm-service:
+        condition: service_started
+      rag-service:
+        condition: service_started
+      mock-external-api:
+        condition: service_started
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=api-gateway
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${API_GATEWAY_PORT:-8080}:${API_GATEWAY_INTERNAL_PORT:-3030}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  user-service:
+    build: 
+      context: .
+      dockerfile: ./services/user-service/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-user-service
+    depends_on:
+      postgres:
+        condition: service_started
+      mongo:
+        condition: service_started
+      apm-server:
+        condition: service_healthy
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=user-service
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${USER_SERVICE_PORT:-8083}:${USER_SERVICE_INTERNAL_PORT:-8081}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  finance-service:
+    build: 
+      context: .
+      dockerfile: ./services/finance-service/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-finance-service
+    depends_on:
+      postgres:
+        condition: service_started
+      mongo:
+        condition: service_started
+      apm-server:
+        condition: service_healthy
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=finance-service
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${FINANCE_SERVICE_PORT:-8084}:${FINANCE_SERVICE_INTERNAL_PORT:-4002}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  llm-service:
+    build: 
+      context: .
+      dockerfile: ./services/llm-service/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-llm-service
+    depends_on:
+      qdrant:
+        condition: service_started
+      apm-server:
+        condition: service_healthy
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=llm-service
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${LLM_SERVICE_PORT:-8000}:${LLM_SERVICE_INTERNAL_PORT:-8000}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  rag-service:
+    build: 
+      context: .
+      dockerfile: ./services/rag-service/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-rag-service
+    depends_on:
+      qdrant:
+        condition: service_started
+      apm-server:
+        condition: service_healthy
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=rag-service
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${RAG_SERVICE_PORT:-4001}:${RAG_SERVICE_INTERNAL_PORT:-8001}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tools-service:
+    build: 
+      context: .
+      dockerfile: ./services/tools-service/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-tools-service
+    depends_on:
+      qdrant:
+        condition: service_started
+      apm-server:
+        condition: service_healthy
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=tools-service
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${TOOLS_SERVICE_PORT:-4003}:${TOOLS_SERVICE_INTERNAL_PORT:-8002}"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  model-retrain:
+    build: 
+      context: .
+      dockerfile: ./services/model-retrain/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-model-retrain
+    env_file: .env
+    volumes:
+      - ./training-drops:/training-drops
+    networks:
+      - crash-pay-business
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  model-registry:
+    build: 
+      context: .
+      dockerfile: ./services/model-registry/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-model-registry
+    env_file: .env
+    ports:
+      - "${MODEL_REGISTRY_PORT:-8050}:${MODEL_REGISTRY_INTERNAL_PORT:-8050}"
+    networks:
+      - crash-pay-business
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mock-external-api:
+    build: 
+      context: .
+      dockerfile: ./services/mock-external-api/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-mock-external-api
+    env_file: .env
+    ports:
+      - "${MOCK_EXTERNAL_API_PORT:-9001}:${MOCK_EXTERNAL_API_INTERNAL_PORT:-4005}"
+    networks:
+      - crash-pay-business
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  gitbook-ingestor:
+    build:
+      context: .
+      dockerfile: ./services/gitbook-ingestor/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-gitbook-ingestor
+    depends_on:
+      apm-server:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=gitbook-ingestor
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    ports:
+      - "${GITBOOK_INGESTOR_PORT:-8020}:8020"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ══════════════════════════════════════════════════════════
+  # FRONTEND
+  # ══════════════════════════════════════════════════════════
+  
+  frontend:
+    build: 
+      context: .
+      dockerfile: ./frontend/Dockerfile
+      no_cache: ${DOCKER_NO_CACHE:-false}
+    container_name: crash-pay-frontend
+    depends_on:
+      api-gateway:
+        condition: service_started
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=frontend
+      - ELASTIC_APM_SERVER_URL=http://crash-pay-apm-server:8200
+      - ELASTIC_APM_ENVIRONMENT=development
+      - ELASTIC_APM_VERIFY_SERVER_CERT=false
+    env_file: .env
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    networks:
+      - crash-pay-business
+      - crash-pay-observability
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ══════════════════════════════════════════════════════════
+# NETWORKS
+# ══════════════════════════════════════════════════════════
+networks:
+  crash-pay-business:
+    name: crash-pay-business
+    driver: bridge
+  
+  crash-pay-observability:
+    name: crash-pay-observability
+    driver: bridge
+
+# ══════════════════════════════════════════════════════════
+# VOLUMES
+# ══════════════════════════════════════════════════════════
+volumes:
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  elasticsearch_data:
+    driver: local

@@ -1,0 +1,107 @@
+.banking-sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: fixed;
+    left: 0;
+    top: 80px;
+    /* Start below the header */
+    z-index: 40;
+    /* Lower than header */
+    transition: transform 0.3s ease;
+    height: calc(100vh - 80px);
+    /* Account for header height */
+}
+
+.banking-sidebar.collapsed {
+    transform: translateX(-180px);
+    /* Hide most of the sidebar */
+}
+
+.sidebar-toggle {
+    position: fixed;
+    left: 220px;
+    top: 120px;
+    z-index: 45;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.sidebar-toggle.collapsed {
+    left: 40px;
+}
+
+.sidebar-toggle:hover {
+    background: var(--accent-gold);
+}
+
+.sidebar-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: var(--text-light);
+}
+
+.sidebar-toggle:hover svg {
+    fill: #000;
+}
+
+.banking-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.banking-sidebar-nav a {
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-family: Inter, sans-serif;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.banking-sidebar-nav a:hover,
+.banking-sidebar-nav a.active {
+    background: var(--accent-gold);
+    color: #000;
+}
+
+.main-content-with-sidebar {
+    margin-left: 220px;
+    min-height: 100vh;
+    margin-top: 80px;
+    /* Account for header */
+    transition: margin-left 0.3s ease;
+}
+
+.main-content-with-sidebar.sidebar-collapsed {
+    margin-left: 40px;
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}

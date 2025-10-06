@@ -1,0 +1,64 @@
+# FastAPI and server dependencies
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings
+
+# LangChain core and community packages
+langchain
+langchain-community
+langchain-core
+
+# LangChain provider-specific packages
+langchain-openai
+langchain-anthropic
+langchain-cohere>=0.3.3
+langchain-google-genai
+langchain-mistralai
+langchain-fireworks
+langchain-together
+
+# Fix protobuf conflicts for Fireworks
+protobuf>=3.20.0,<5.0.0
+grpcio>=1.50.0,<2.0.0
+langchain-huggingface
+
+# Direct provider SDKs
+openai
+anthropic
+cohere<=5.15.0
+google-generativeai
+mistralai
+together
+replicate
+huggingface-hub
+
+# Vector databases and embeddings
+faiss-cpu
+qdrant-client
+sentence-transformers
+tiktoken
+
+# HTTP and async utilities
+httpx
+aiohttp
+requests
+
+# Utilities and monitoring
+structlog
+prometheus-client
+elastic-apm
+
+# Authentication and authorization (NEW)
+python-jose[cryptography]
+python-multipart
+passlib[bcrypt]
+pyjwt
+jwcrypto
+
+# Async MongoDB driver for MemoryManager
+motor
+
+# Pin PyMongo to version compatible with Motor to avoid _QUERY_OPTIONS import removal
+pymongo

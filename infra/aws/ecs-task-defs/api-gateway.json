@@ -1,0 +1,172 @@
+{
+  "family": "fake-fintech-api-gateway",
+  "networkMode": "awsvpc",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/fake-fintech-api-gateway-role",
+  "containerDefinitions": [
+    {
+      "name": "api-gateway",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/fake-fintech/api-gateway:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3030,
+          "hostPort": 3030,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "PORT",
+          "value": "3030"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info"
+        },
+        {
+          "name": "POSTGRES_HOST",
+          "value": "fake-fintech-rds.cluster-xyz.us-east-1.rds.amazonaws.com"
+        },
+        {
+          "name": "POSTGRES_DB",
+          "value": "fakefintech"
+        },
+        {
+          "name": "POSTGRES_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "MONGO_URI",
+          "value": "mongodb://fake-fintech-docdb.cluster-xyz.us-east-1.docdb.amazonaws.com:27017/fakefintech"
+        },
+        {
+          "name": "USER_SERVICE_INTERNAL_PORT",
+          "value": "8081"
+        },
+        {
+          "name": "TRANSACTION_SERVICE_INTERNAL_PORT",
+          "value": "4002"
+        },
+        {
+          "name": "LLM_SERVICE_INTERNAL_PORT",
+          "value": "8000"
+        },
+        {
+          "name": "RAG_SERVICE_INTERNAL_PORT",
+          "value": "8001"
+        },
+        {
+          "name": "TOOLS_SERVICE_INTERNAL_PORT",
+          "value": "8002"
+        },
+        {
+          "name": "MODEL_REGISTRY_INTERNAL_PORT",
+          "value": "8050"
+        },
+        {
+          "name": "MOCK_EXTERNAL_API_INTERNAL_PORT",
+          "value": "4005"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/jwt-secret"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/postgres-user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/postgres-password"
+        },
+        {
+          "name": "ADMIN_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/admin-username"
+        },
+        {
+          "name": "ADMIN_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/admin-password"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/api-gateway",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3030/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    },
+    {
+      "name": "filebeat-sidecar",
+      "image": "docker.elastic.co/beats/filebeat:8.12.2",
+      "essential": false,
+      "cpu": 64,
+      "memory": 128,
+      "environment": [
+        {
+          "name": "ELASTICSEARCH_HOST",
+          "value": "https://<AWS_ELASTICSEARCH_ENDPOINT>"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ELASTICSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-user"
+        },
+        {
+          "name": "ELASTICSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "varlog",
+          "containerPath": "/var/log"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/filebeat",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "filebeat"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "varlog",
+      "host": {
+        "sourcePath": "/var/log"
+      }
+    }
+  ]
+}

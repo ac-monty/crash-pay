@@ -1,0 +1,31 @@
+{
+  "name": "fake-fintech-api-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway for the intentionally vulnerable Fake-Fintech application. Routes traffic between front-end and micro-services; purposefully lacks rate-limiting and other mitigations so researchers can exercise OWASP-LLM Top-10 issues.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "elastic-apm-node": "^4.5.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^2.0.9",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.17.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

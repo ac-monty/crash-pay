@@ -1,0 +1,214 @@
+{
+  "family": "fake-fintech-llm-service",
+  "revision": 1,
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/llmServiceTaskRole",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "volumes": [
+    {
+      "name": "tmp",
+      "host": {
+        "sourcePath": "/tmp"
+      }
+    }
+  ],
+  "containerDefinitions": [
+    {
+      "name": "llm-service",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/fake-fintech/llm-service:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "APP_ENV",
+          "value": "production"
+        },
+        {
+          "name": "LLM_PROVIDER",
+          "value": "mistral"
+        },
+        {
+          "name": "LLM_MODEL",
+          "value": "mistral-large-2411"
+        },
+        {
+          "name": "LLM_TEMPERATURE",
+          "value": "0.2"
+        },
+        {
+          "name": "LLM_MAX_TOKENS",
+          "value": "4096"
+        },
+        {
+          "name": "LLM_STREAMING",
+          "value": "true"
+        },
+        {
+          "name": "VECTOR_DB_TYPE",
+          "value": "pinecone"
+        },
+        {
+          "name": "PINECONE_ENVIRONMENT",
+          "value": "us-east-1"
+        },
+        {
+          "name": "PINECONE_INDEX",
+          "value": "fake-fintech-rag"
+        },
+        {
+          "name": "MODEL_REGISTRY_URL",
+          "value": "http://model-registry.fake-fintech.local"
+        },
+        {
+          "name": "TOOLS_SERVICE_URL",
+          "value": "http://tools-service.fake-fintech.local"
+        },
+        {
+          "name": "RAG_SERVICE_URL",
+          "value": "http://rag-service.fake-fintech.local"
+        },
+        {
+          "name": "SYSTEM_PROMPT_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "CONTENT_FILTER_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "MAX_RESPONSE_TOKENS",
+          "value": "4096"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/openai-api-key"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/anthropic-api-key"
+        },
+        {
+          "name": "GOOGLE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/google-api-key"
+        },
+        {
+          "name": "COHERE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/cohere-api-key"
+        },
+        {
+          "name": "MISTRAL_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/mistral-api-key"
+        },
+        {
+          "name": "TOGETHER_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/together-api-key"
+        },
+        {
+          "name": "HUGGINGFACE_API_TOKEN",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/huggingface-api-token"
+        },
+        {
+          "name": "FIREWORKS_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/fireworks-api-key"
+        },
+        {
+          "name": "PINECONE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/pinecone-api-key"
+        },
+        {
+          "name": "SYSTEM_PROMPT",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/system-prompt"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "tmp",
+          "containerPath": "/tmp",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/llm-service",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8000/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      }
+    },
+    {
+      "name": "filebeat-sidecar",
+      "image": "docker.elastic.co/beats/filebeat:8.12.2",
+      "essential": false,
+      "dependsOn": [
+        {
+          "containerName": "llm-service",
+          "condition": "START"
+        }
+      ],
+      "environment": [
+        {
+          "name": "ELASTICSEARCH_HOSTS",
+          "value": "https://<AWS_ELASTICSEARCH_ENDPOINT>:443"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ELASTICSEARCH_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-user"
+        },
+        {
+          "name": "ELASTICSEARCH_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:<AWS_REGION>:<AWS_ACCOUNT_ID>:secret:fake-fintech/elasticsearch-password"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "tmp",
+          "containerPath": "/tmp",
+          "readOnly": true
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fake-fintech/llm-service/filebeat",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "filebeat"
+        }
+      },
+      "command": [
+        "-e",
+        "-E",
+        "output.elasticsearch.hosts=[${ELASTICSEARCH_HOSTS}]"
+      ]
+    }
+  ]
+}

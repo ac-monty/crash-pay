@@ -1,0 +1,124 @@
+# =============================================================================
+# Fake-Fintech Metricbeat Configuration - Simplified for Elastic 9.0.2
+# =============================================================================
+
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+metricbeat.modules:
+  # Elasticsearch monitoring
+  - module: elasticsearch
+    xpack.enabled: true
+    period: 10s
+    hosts: ["http://elasticsearch:9200"]
+
+  # Kibana monitoring
+  - module: kibana
+    xpack.enabled: true
+    period: 10s
+    hosts: ["http://kibana:5601"]
+
+  # System metrics
+  - module: system
+    period: 10s
+    metricsets:
+      - cpu
+      - load
+      - memory
+      - network
+      - process
+      - process_summary
+      - socket_summary
+      - filesystem
+      - fsstat
+    processes: [".*"]
+    process.include_top_n:
+      by_cpu: 5
+      by_memory: 5
+
+  # Docker container metrics
+  - module: docker
+    period: 10s
+    hosts: ["unix:///var/run/docker.sock"]
+    metricsets:
+      - container
+      - cpu
+      - diskio
+      - healthcheck
+      - info
+      - memory
+      - network
+
+  # HTTP monitoring for services
+  - module: http
+    period: 30s
+    metricsets: ["json"]
+    hosts:
+      - "http://crash-pay-api-gateway:3030/health"
+      - "http://crash-pay-llm-service:8000/health"
+      - "http://crash-pay-user-service:8081/health"
+      - "http://crash-pay-transaction-service:4002/health"
+      - "http://crash-pay-rag-service:8001/health"
+      - "http://crash-pay-tools-service:8002/health"
+    namespace: "crash_pay_services"
+    path: "/"
+
+  # Database monitoring
+  - module: postgresql
+    enabled: false # Enable when postgres is available
+    period: 10s
+    hosts:
+      ["postgres://admin:weakpass@postgres:5432/fakefintech?sslmode=disable"]
+
+  - module: mongodb
+    enabled: false # Enable when mongo is available
+    period: 10s
+    hosts: ["mongodb://admin:changeme@mongo:27017"]
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_fields:
+      target: ""
+      fields:
+        project: "fake-fintech"
+        environment: "testbed"
+        stack: "observability"
+
+# Output to Elasticsearch (no SSL)
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+
+# Kibana setup
+setup.kibana:
+  host: "http://kibana:5601"
+
+# Template and dashboard setup
+setup.template.enabled: true
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+  index.refresh_interval: "5s"
+
+setup.dashboards.enabled: true
+
+# Performance settings
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /usr/share/metricbeat/logs
+  name: metricbeat
+  keepfiles: 7
+  permissions: 0644
+
+monitoring.enabled: false
+http.enabled: false

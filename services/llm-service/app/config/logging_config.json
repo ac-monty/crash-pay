@@ -1,0 +1,96 @@
+{
+    "version": 1,
+    "formatters": {
+        "colored": {
+            "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "colors": {
+                "DEBUG": "\\u001b[96m",
+                "INFO": "\\u001b[97m",
+                "WARNING": "\\u001b[93m",
+                "ERROR": "\\u001b[91m",
+                "CRITICAL": "\\u001b[91m"
+            },
+            "reset_color": "\\u001b[0m"
+        },
+        "standard": {
+            "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "colored",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "standard",
+            "filename": "/tmp/llm-service.log",
+            "mode": "a"
+        }
+    },
+    "loggers": {
+        "llm_service": {
+            "level": "DEBUG",
+            "handlers": [
+                "console",
+                "file"
+            ],
+            "propagate": false
+        },
+        "app": {
+            "level": "DEBUG",
+            "handlers": [
+                "console",
+                "file"
+            ],
+            "propagate": false
+        },
+        "elasticapm": {
+            "level": "WARNING",
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        },
+        "pymongo": {
+            "level": "WARNING",
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        },
+        "urllib3": {
+            "level": "WARNING",
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        },
+        "httpx": {
+            "level": "WARNING",
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        },
+        "httpcore": {
+            "level": "WARNING",
+            "handlers": [
+                "console"
+            ],
+            "propagate": false
+        }
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": [
+            "console"
+        ]
+    },
+    "disable_existing_loggers": false
+}

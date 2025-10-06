@@ -1,0 +1,159 @@
+# =============================================================================
+# Fake-Fintech Filebeat Configuration - Simplified for Elastic 9.0.2
+# =============================================================================
+
+filebeat.inputs:
+  # Container logs via Docker's log files
+  - type: filestream
+    id: docker-containers
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    json.keys_under_root: true
+    json.message_key: log
+    include_lines: ["crash-pay"]
+
+  # System logs
+  - type: filestream
+    id: system-logs
+    enabled: true
+    paths:
+      - /hostfs/var/log/*.log
+      - /hostfs/var/log/messages
+      - /hostfs/var/log/syslog
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+  # Decode JSON logs
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+      add_error_key: true
+
+  # CRITICAL: Exclude observability containers to prevent infinite loop
+  - drop_event:
+      when:
+        or:
+          - contains:
+              container.name: "crash-pay-elasticsearch"
+          - contains:
+              container.name: "crash-pay-kibana"
+          - contains:
+              container.name: "crash-pay-apm-server"
+          - contains:
+              container.name: "crash-pay-filebeat"
+          - contains:
+              container.name: "crash-pay-metricbeat"
+
+  # Add service identification for crash-pay services
+  - add_fields:
+      target: "service"
+      fields:
+        name: "api-gateway"
+        type: "web"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-api-gateway"
+
+  - add_fields:
+      target: "service"
+      fields:
+        name: "llm-service"
+        type: "ai"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-llm-service"
+
+  - add_fields:
+      target: "service"
+      fields:
+        name: "user-service"
+        type: "business"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-user-service"
+
+  - add_fields:
+      target: "service"
+      fields:
+        name: "transaction-service"
+        type: "business"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-transaction-service"
+
+  - add_fields:
+      target: "service"
+      fields:
+        name: "rag-service"
+        type: "ai"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-rag-service"
+
+  - add_fields:
+      target: "service"
+      fields:
+        name: "tools-service"
+        type: "ai"
+        environment: "testbed"
+      when:
+        contains:
+          container.name: "crash-pay-tools-service"
+
+  # Add project metadata for all crash-pay containers
+  - add_fields:
+      target: ""
+      fields:
+        project: "fake-fintech"
+        testbed: true
+      when:
+        contains:
+          container.name: "crash-pay-"
+
+# Output to Elasticsearch (no SSL)
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+
+# Kibana setup (no authentication)
+setup.kibana:
+  host: "http://kibana:5601"
+
+# Index template and lifecycle management
+setup.template.enabled: true
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+  index.refresh_interval: "5s"
+
+# Enable dashboards
+setup.dashboards.enabled: true
+
+# Logging configuration
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /usr/share/filebeat/logs
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Performance and reliability
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s
+
+monitoring.enabled: false
+http.enabled: false

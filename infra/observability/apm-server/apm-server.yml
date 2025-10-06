@@ -1,0 +1,47 @@
+apm-server:
+  host: "0.0.0.0:8200"
+  ssl:
+    enabled: false
+  auth:
+    anonymous:
+      enabled: true
+      allow_agent: ["rum-js", "java", "python", "nodejs", "go"]
+      allow_service: ["*"]
+  rum:
+    enabled: true
+    event_rate:
+      limit: 10000
+      lru_size: 2000
+    allow_origins: ["*"]
+    allow_headers: ["*"]
+    allow_service_names: ["*"]
+    source_mapping:
+      enabled: false
+    library_pattern: "node_modules|bower_components|~"
+    exclude_from_grouping: "^/webpack"
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  protocol: "http"
+  username: ""
+  password: ""
+
+setup.template:
+  enabled: true
+
+setup.dashboards:
+  enabled: true
+
+setup.kibana:
+  host: "http://kibana:5601"
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /usr/share/apm-server/logs
+  name: apm-server
+  keepfiles: 7
+  permissions: 0644
+
+monitoring.enabled: false
+http.enabled: false
