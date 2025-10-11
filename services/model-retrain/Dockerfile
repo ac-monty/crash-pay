@@ -30,17 +30,9 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # ------------------------------ Python Deps ----------------------------------
-# Direct `pip install` without pinning → intentional supply-chain risk (LLM05)
-RUN pip install --no-cache-dir \
-        watchdog \
-        requests \
-        pandas \
-        numpy \
-        scikit-learn \
-        sentencepiece \
-        openai \
-        langchain[all] \
-        tqdm
+# Install from pinned requirements.txt for reproducibility
+COPY services/model-retrain/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # ------------------------------ App Source -----------------------------------
 WORKDIR /app

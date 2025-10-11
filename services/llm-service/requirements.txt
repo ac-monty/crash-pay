@@ -1,64 +1,64 @@
 # FastAPI and server dependencies
-fastapi
-uvicorn[standard]
-python-dotenv
-pydantic
-pydantic-settings
+fastapi==0.116.2
+uvicorn[standard]==0.24.0
+python-dotenv==1.1.1
+pydantic==2.11.9
+pydantic-settings==2.10.1
 
 # LangChain core and community packages
-langchain
-langchain-community
-langchain-core
+langchain==0.3.27
+langchain-community==0.3.29
+langchain-core==0.3.76
 
 # LangChain provider-specific packages
-langchain-openai
-langchain-anthropic
-langchain-cohere>=0.3.3
-langchain-google-genai
-langchain-mistralai
-langchain-fireworks
-langchain-together
+langchain-openai==0.3.33
+langchain-anthropic==0.3.20
+langchain-cohere==0.4.5
+langchain-google-genai==2.0.10
+langchain-mistralai==0.2.12
+langchain-fireworks==0.3.0
+langchain-together==0.3.1
 
 # Fix protobuf conflicts for Fireworks
-protobuf>=3.20.0,<5.0.0
-grpcio>=1.50.0,<2.0.0
-langchain-huggingface
+protobuf==4.25.8
+grpcio==1.75.0
+langchain-huggingface==0.3.1
 
 # Direct provider SDKs
-openai
-anthropic
-cohere<=5.15.0
-google-generativeai
-mistralai
-together
-replicate
-huggingface-hub
+openai==1.108.1
+anthropic==0.68.0
+cohere==5.15.0
+google-generativeai==0.8.5
+mistralai==1.9.10
+together==1.5.25
+replicate==1.0.7
+huggingface-hub==0.35.0
 
 # Vector databases and embeddings
-faiss-cpu
-qdrant-client
-sentence-transformers
-tiktoken
+faiss-cpu==1.12.0
+qdrant-client==1.15.1
+sentence-transformers==5.1.0
+tiktoken==0.11.0
 
 # HTTP and async utilities
-httpx
-aiohttp
-requests
+httpx==0.28.1
+aiohttp==3.12.15
+requests==2.32.5
 
 # Utilities and monitoring
-structlog
-prometheus-client
-elastic-apm
+structlog==25.4.0
+prometheus-client==0.23.1
+elastic-apm==6.24.0
 
-# Authentication and authorization (NEW)
-python-jose[cryptography]
-python-multipart
-passlib[bcrypt]
-pyjwt
-jwcrypto
+# Authentication and authorization
+python-jose[cryptography]==3.5.0
+python-multipart==0.0.20
+passlib[bcrypt]==1.7.4
+pyjwt==2.10.1
+jwcrypto==1.5.6
 
 # Async MongoDB driver for MemoryManager
-motor
+motor==3.7.1
 
-# Pin PyMongo to version compatible with Motor to avoid _QUERY_OPTIONS import removal
-pymongo
+# Pin PyMongo to version compatible with Motor
+pymongo==4.15.1
